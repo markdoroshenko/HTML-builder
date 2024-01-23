@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
-const currentPath = path.join(__dirname);
+const currentPath = path.join(__dirname, 'secret-folder');
+console.log('currentPath', currentPath);
 
 async function innerFiles(directoryPath) {
   try {

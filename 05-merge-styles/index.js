@@ -1,33 +1,34 @@
-//1. Import all required modules.
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 
-//define required dirs && files paths.
+// Define required dirs && files paths.
 const stylesDirPath = path.join(__dirname, 'styles');
 const projectDistPath = path.join(__dirname, 'project-dist');
 const bundleCssPath = path.join(projectDistPath, 'bundle.css');
 
-//2. Read the contents of the `styles` folder.
-fs.readdir(stylesDirPath, (err, files) => {
-  if (err) {
-    console.error('Error reading directory:', err);
-    return;
+async function createBundleCssFile() {
+  try {
+    // 2. Read the contents of the `styles` folder asynchronously.
+    const files = await fs.readdir(stylesDirPath);
+
+    // 3. Check if an object in the folder is a file and has the correct file extension.
+    const cssFilesArr = files.filter((file) => path.extname(file) === '.css');
+    console.log('cssFilesArr', cssFilesArr);
+
+    // 4. Read and write the style files asynchronously.
+    const stylesArray = await Promise.all(
+      cssFilesArr.map(async (file) => {
+        const filePath = path.join(stylesDirPath, file);
+        return await fs.readFile(filePath, 'utf-8');
+      }),
+    );
+
+    // 6. Write the array of styles to the `bundle.css` file asynchronously.
+    const bundleCssContent = stylesArray.join('\n');
+    await fs.writeFile(bundleCssPath, bundleCssContent);
+    console.log('Bundle.css file created successfully:', bundleCssPath);
+  } catch (error) {
+    console.error('Error:', error.message);
   }
-  //3. Check if an object in the folder is a file and has the correct file extension.
-  const cssFilesArr = files.filter((file) => path.extname(file) === '.css');
-  console.log('cssFilesArr', cssFilesArr);
-
-  //4. Read the style file.
-  //5. Write the read data to an array.
-  const stylesArray = [];
-  cssFilesArr.forEach((file) => {
-    const filePath = path.join(stylesDirPath, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
-    stylesArray.push(content);
-  });
-
-  // 6. Write the array of styles to the `bundle.css` file.
-  const bundleCssContent = stylesArray.join('\n');
-  fs.writeFileSync(bundleCssPath, bundleCssContent);
-  console.log('Bundle.css file created successfully:', bundleCssPath);
-});
+}
+createBundleCssFile();
